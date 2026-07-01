@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Dashboard &amp; Certifications — Payments Academy 3.0</title>
+  <meta name="description" content="Your learning dashboard: track progress, select role-based paths, take practice exams, and earn payments certifications." />
+  <link rel="stylesheet" href="styles/main.css" />
+  <style>
+    .dash-layout {
+      max-width: 1200px;
+      margin: 6rem auto 3rem;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+    @media (max-width: 900px) {
+      .dash-layout { grid-template-columns: 1fr; }
+    }
+    
+    .dash-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 2.25rem;
+      margin-bottom: 2rem;
+    }
+    .dash-card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    /* Paths styling */
+    .paths-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    @media (max-width: 600px) {
+      .paths-grid { grid-template-columns: 1fr; }
+    }
+    .path-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: all var(--t-normal);
+    }
+    .path-card:hover, .path-card.active {
+      border-color: var(--accent-indigo);
+      background: rgba(99,102,241,0.05);
+      box-shadow: 0 0 15px rgba(99,102,241,0.15);
+    }
+    .path-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+    .path-desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    .prog-bar-container {
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+    .prog-bar-fill {
+      height: 100%;
+      background: var(--grad-indigo);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    .prog-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    /* Certifications styling */
+    .certs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .cert-item {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    @media (max-width: 600px) {
+      .cert-item { flex-direction: column; align-items: start; }
+    }
+    .cert-info {
+      flex-grow: 1;
+    }
+    .cert-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+    .cert-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+    }
+    .cert-status-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+    }
+    .cert-locked { background: rgba(255,255,255,0.08); color: var(--text-muted); }
+    .cert-passed { background: rgba(16,185,129,0.15); color: #10b981; }
+    
+    /* Practice Exam Modal styling */
+    .exam-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(8,12,20,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+    }
+    .exam-modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      max-width: 600px;
+      width: 90%;
+      position: relative;
+    }
+    
+    /* Notes & Bookmarks side panel */
+    .side-notes-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .bookmark-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed var(--border-subtle);
+    }
+    .note-textarea {
+      width: 100%;
+      height: 120px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: #fff;
+      padding: 0.75rem;
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+      resize: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">⚡</div>
+    Payments Academy
+  </a>
+  <ul class="nav-links">
+    <li><a href="map.html">Map</a></li>
+    <li><a href="flows.html">Flows</a></li>
+    <li><a href="regulations.html">Regulations</a></li>
+    <li><a href="library.html">Library</a></li>
+    <li><a href="graph.html">Graph</a></li>
+    <li><a href="dashboard.html" class="active">Dashboard</a></li>
+    <li><a href="capstones.html">Capstones</a></li>
+  </ul>
+</nav>
+
+<header class="map-header" style="padding-bottom:2rem;">
+  <div class="hero-badge">PERSONAL PROGRESS</div>
+  <h1 class="hero-title">Your Learning Dashboard</h1>
+  <p class="hero-desc" style="max-width:700px; margin: 1rem auto 0;">
+    Select role-based paths, track course completions, write notes, and pass practice exams to earn digital payments badges.
+  </p>
+</header>
+
+<div class="dash-layout">
+  
+  <div>
+    <!-- Role-Based Paths -->
+    <div class="dash-card">
+      <div class="dash-card-title">Role-Based Pathways</div>
+      <div class="paths-grid">
+        <div class="path-card" onclick="selectPath('PM')">
+          <div class="path-title">Product Manager</div>
+          <p class="path-desc">Focuses on consumer payments checkout, card interchange, Zelle, and open banking rules.</p>
+          <div class="prog-bar-container"><div class="prog-bar-fill" id="pm-bar"></div></div>
+          <div class="prog-text"><span>Core Modules: 1, 3, 4, 6</span><span id="pm-pct">0%</span></div>
+        </div>
+
+        <div class="path-card" onclick="selectPath('Eng')">
+          <div class="path-title">Software Engineer</div>
+          <p class="path-desc">Focuses on technical architectures: ISO 20022 elements, FedNow/RTP APIs, and virtual ledgers.</p>
+          <div class="prog-bar-container"><div class="prog-bar-fill" id="eng-bar"></div></div>
+          <div class="prog-text"><span>Core Modules: 1, 2, 4, 7</span><span id="eng-pct">0%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Certification Center -->
+    <div class="dash-card">
+      <div class="dash-card-title">Certification Center</div>
+      
+      <div class="certs-list">
+        
+        <div class="cert-item">
+          <div class="cert-info">
+            <div class="cert-badge-row">
+              <span class="cert-title">Payments Foundations</span>
+              <span class="cert-status-badge cert-locked" id="badge-foundations">Locked</span>
+            </div>
+            <p class="details-text" style="font-size:0.82rem;">Demonstrate mastery of ledger entries, clearing, and basic payment stages. Requires Module 1 completion.</p>
+          </div>
+          <button class="qz-btn qz-btn-primary" onclick="startExam('Foundations')">Take Practice Exam</button>
+        </div>
+
+        <div class="cert-item">
+          <div class="cert-info">
+            <div class="cert-badge-row">
+              <span class="cert-title">Card Payments Professional</span>
+              <span class="cert-status-badge cert-locked" id="badge-cards">Locked</span>
+            </div>
+            <p class="details-text" style="font-size:0.82rem;">Demonstrate command of interchange economics, 4-party loops, and disputes. Requires Module 4 completion.</p>
+          </div>
+          <button class="qz-btn qz-btn-primary" onclick="startExam('Cards')">Take Practice Exam</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Side Panel -->
+  <div class="side-notes-panel">
+    
+    <!-- User Progress Summary -->
+    <div class="dash-card" style="padding:1.5rem;">
+      <div class="details-section-title" style="margin-top:0;">Progress Summary</div>
+      <p class="details-text" style="font-size:0.85rem;" id="progress-summary">Completed modules: None. Get started by clicking modules in the roadmap.</p>
+      <button class="qz-btn" onclick="clearProgress()" style="margin-top:0.75rem; font-size:0.7rem; padding:0.35rem 0.65rem;">Reset All Progress</button>
+    </div>
+
+    <!-- Bookmarks & Notes -->
+    <div class="dash-card" style="padding:1.5rem;">
+      <div class="details-section-title" style="margin-top:0;">My Study Notes</div>
+      <textarea id="my-notes" class="note-textarea" placeholder="Jot down notes or interview questions here... (automatically saved)" oninput="saveNotes()"></textarea>
+      
+      <div class="details-section-title">Bookmarked Lessons</div>
+      <div id="bookmark-list">
+        <div style="font-size:0.8rem; color:var(--text-muted);">No bookmarks saved yet.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Practice Exam Modal -->
+<div class="exam-modal" id="exam-modal">
+  <div class="exam-modal-content">
+    <div class="dash-card-title">
+      <span id="exam-name">Foundations Certification</span>
+      <button onclick="closeExam()" style="background:none; border:none; color:#f43f5e; font-weight:700; cursor:pointer;">✕</button>
+    </div>
+    
+    <div id="exam-quiz-wrapper">
+      <!-- Generated via JS -->
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-logo">
+      <div class="site-footer-logo-icon">⚡</div>
+      Payments Academy
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-bottom-copy">© 2026 Payments Academy · For educational use only</div>
+      <div class="footer-bottom-note">Content reflects publicly available information as of 2025–2026 · Verify current figures with primary sources</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Simple Questions for Practice Exams
+  const EXAMS = {
+    'Foundations': [
+      { q: "What does RTGS stand for?", options: ["Real-time Gross Settlement", "Rapid Transfer Gateway", "Regulated Settlement System"], answer: 0, exp: "RTGS immediately settles transactions individually in real-time." },
+      { q: "What is a 'push' payment?", options: ["Payer sends instructions to their bank", "Receiver drags funds from the sender", "Credit card swipe"], answer: 0, exp: "In a push payment, the payer instructs their bank to send funds, giving them control." }
+    ],
+    'Cards': [
+      { q: "Who sets the interchange rate schedule in the four-party model?", options: ["Card Networks (Visa/MC)", "Acquiring Bank", "Merchant"], answer: 0, exp: "Visa and Mastercard set and publish standard interchange schedules." },
+      { q: "What fee does the merchant pay to the acquirer?", options: ["Merchant Discount Rate (MDR)", "Interchange", "Assessment"], answer: 0, exp: "Merchants pay the all-in Merchant Discount Rate (MDR) to the acquirer." }
+    ]
+  };
+
+  let activeExam = '';
+  let activeExamIndex = 0;
+  let activeExamScore = 0;
+
+  function initDashboard() {
+    loadNotes();
+    updateProgressVisuals();
+  }
+
+  function selectPath(path) {
+    // Simply mock path activation
+    alert(`Activated ${path === 'PM' ? 'Product Manager' : 'Software Engineer'} learning pathway!`);
+  }
+
+  function startExam(examName) {
+    activeExam = examName;
+    activeExamIndex = 0;
+    activeExamScore = 0;
+    
+    document.getElementById('exam-modal').style.display = 'flex';
+    document.getElementById('exam-name').innerText = `${examName} Certification Exam`;
+    renderExamQuestion();
+  }
+
+  function renderExamQuestion() {
+    const qList = EXAMS[activeExam];
+    const q = qList[activeExamIndex];
+    const wrapper = document.getElementById('exam-quiz-wrapper');
+    
+    wrapper.innerHTML = `
+      <p class="quiz-q" style="font-size:1.1rem; margin-bottom:1rem;">Question ${activeExamIndex + 1} of ${qList.length}: ${q.q}</p>
+      <div class="quiz-opts" style="margin-bottom:1.5rem;">
+        ${q.options.map((opt, i) => `
+          <button class="quiz-opt-btn" onclick="checkExamAnswer(${i}, ${q.answer})">${opt}</button>
+        `).join('')}
+      </div>
+      <p id="exam-feedback" style="display:none; font-weight:600; margin-bottom:1rem;"></p>
+      <button class="qz-btn qz-btn-primary" id="exam-next-btn" style="display:none;" onclick="nextExamQuestion()">Next Question →</button>
+    `;
+  }
+
+  function checkExamAnswer(selected, correct) {
+    const wrapper = document.getElementById('exam-quiz-wrapper');
+    const btns = wrapper.querySelectorAll('.quiz-opt-btn');
+    const feedback = document.getElementById('exam-feedback');
+    
+    btns.forEach((btn, idx) => {
+      btn.disabled = true;
+      if (idx === correct) btn.classList.add('correct');
+      if (idx === selected && selected !== correct) btn.classList.add('wrong');
+    });
+
+    feedback.style.display = 'block';
+    if (selected === correct) {
+      activeExamScore++;
+      feedback.style.color = '#10b981';
+      feedback.textContent = '✅ Correct!';
+    } else {
+      feedback.style.color = '#f43f5e';
+      feedback.textContent = `❌ Incorrect. ${EXAMS[activeExam][activeExamIndex].exp}`;
+    }
+    
+    document.getElementById('exam-next-btn').style.display = 'block';
+  }
+
+  function nextExamQuestion() {
+    activeExamIndex++;
+    const qList = EXAMS[activeExam];
+    
+    if (activeExamIndex < qList.length) {
+      renderExamQuestion();
+    } else {
+      // Show Final results
+      const passed = activeExamScore === qList.length; // Needs 100% in this mini mock
+      const wrapper = document.getElementById('exam-quiz-wrapper');
+      
+      wrapper.innerHTML = `
+        <h3 style="color:${passed ? '#10b981' : '#f43f5e'}; font-family:'Outfit'; font-size:1.5rem; margin-bottom:0.75rem;">
+          ${passed ? '🏆 Exam Passed!' : '📚 Exam Not Passed'}
+        </h3>
+        <p class="details-text" style="margin-bottom:1.5rem;">
+          You scored ${activeExamScore} out of ${qList.length} (${Math.round((activeExamScore / qList.length) * 100)}%).
+          ${passed ? 'Congratulations! Your certification digital badge has been claimed and added to your profile.' : 'Please review the module contents and try again.'}
+        </p>
+        <button class="qz-btn" onclick="closeExam()">Close Window</button>
+      `;
+      
+      if (passed) {
+        localStorage.setItem(`cert_${activeExam}`, 'passed');
+        updateProgressVisuals();
+      }
+    }
+  }
+
+  function closeExam() {
+    document.getElementById('exam-modal').style.display = 'none';
+  }
+
+  function updateProgressVisuals() {
+    // Read local storage progress
+    const completed = JSON.parse(localStorage.getItem('completed_modules') || '[]');
+    
+    // Summary
+    const summary = document.getElementById('progress-summary');
+    if (completed.length > 0) {
+      summary.textContent = `Completed modules: ${completed.join(', ').toUpperCase()}`;
+    } else {
+      summary.textContent = 'Completed modules: None yet. Study lessons and pass module quizzes to track completion.';
+    }
+
+    // Role PM Path Math (Module 1, 3, 4, 6)
+    const pmMods = ['m1', 'm3', 'm4', 'm6'];
+    const pmDone = pmMods.filter(m => completed.includes(m)).length;
+    const pmPct = Math.round((pmDone / pmMods.length) * 100);
+    document.getElementById('pm-bar').style.width = `${pmPct}%`;
+    document.getElementById('pm-pct').innerText = `${pmPct}%`;
+
+    // Role Eng Path Math (Module 1, 2, 4, 7)
+    const engMods = ['m1', 'm2', 'm4', 'm7'];
+    const engDone = engMods.filter(m => completed.includes(m)).length;
+    const engPct = Math.round((engDone / engMods.length) * 100);
+    document.getElementById('eng-bar').style.width = `${engPct}%`;
+    document.getElementById('eng-pct').innerText = `${engPct}%`;
+
+    // Check Certifications
+    if (localStorage.getItem('cert_Foundations') === 'passed') {
+      const el = document.getElementById('badge-foundations');
+      el.className = 'cert-status-badge cert-passed';
+      el.textContent = 'Passed & Issued';
+    }
+    if (localStorage.getItem('cert_Cards') === 'passed') {
+      const el = document.getElementById('badge-cards');
+      el.className = 'cert-status-badge cert-passed';
+      el.textContent = 'Passed & Issued';
+    }
+  }
+
+  function clearProgress() {
+    localStorage.removeItem('completed_modules');
+    localStorage.removeItem('cert_Foundations');
+    localStorage.removeItem('cert_Cards');
+    updateProgressVisuals();
+    alert('All profile progress has been reset.');
+  }
+
+  // Notes
+  function saveNotes() {
+    const notes = document.getElementById('my-notes').value;
+    localStorage.setItem('my_payments_notes', notes);
+  }
+  function loadNotes() {
+    const notes = localStorage.getItem('my_payments_notes') || '';
+    document.getElementById('my-notes').value = notes;
+  }
+
+  // Boot
+  window.onload = initDashboard;
+</script>
+</body>
+</html>
